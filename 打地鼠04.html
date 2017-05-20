@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>打地鼠</title>
+	<style>
+	*{
+		margin: 0;
+		padding: 0;
+	}
+	#outer{
+		width: 320px;
+		height: 480px;
+		margin: 0 auto;
+		background: url(img/game_bg.jpg) 0 0 no-repeat;
+		position: relative;
+
+	}	
+	#score{
+		position: absolute;
+		left: 62px;
+		top: 12px;
+		color: #fff;
+		font-size: 20px;
+		font-weight: bold;
+		font-family: arial;
+	}
+	#timebar{
+		width: 180px;
+		height: 16px;
+		position: absolute;
+		left: 63px;
+		top: 66px;
+		background: url(img/progress.png) 0 0 no-repeat;
+	}
+	#menu{
+		position: absolute;
+		left: 0;
+		top: 160px;
+		width: 100%;
+
+	}
+	#menu a{
+		color: #f60;
+		display: block;
+		text-align: center;
+		line-height: 50px;
+		font-size: 30px;
+		text-decoration: none;
+		font-weight: bold;
+		font-family: Arial;
+		text-shadow: 0 0 5px #ffff00;
+		
+
+
+	}
+	#gameOver{
+		position: absolute;
+		left: 0;
+		top: 230px;
+		width: 100%;
+		text-align: center;
+		line-height: 50px;
+		font-size: 30px;
+		color: #ff6600;
+		text-shadow: 0 0 5px #ffff00;
+		font-weight: bold;
+		font-family: arial;
+		cursor: pointer;
+		z-index: 100;
+		display: none;
+
+	}
+	#wolfbox div:first-child{
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 97px;
+		top: 114px;
+
+	}
+	#wolfbox div:nth-child(2){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 185px;
+		top: 142px;
+
+	}
+	#wolfbox div:nth-child(3){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 16px;
+		top: 160px;
+
+	}
+	#wolfbox div:nth-child(4){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 100px;
+		top: 190px;
+
+	}
+	#wolfbox div:nth-child(5){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 197px;
+		top: 212px;
+
+	}
+	#wolfbox div:nth-child(6){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 16px;
+		top: 220px;
+
+	}
+	#wolfbox div:nth-child(7){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 118px;
+		top: 274px;
+
+	}
+	#wolfbox div:nth-child(8){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 30px;
+		top: 293px;
+
+	}
+	#wolfbox div:nth-child(9){
+		position: absolute;
+		width: 108px;
+		height: 101px;
+		background-image: url(img/h.png);
+		left: 205px;
+		top: 296px;
+
+	}
+	</style>
+</head>
+<body>
+
+	<div id="outer">
+		<div id="score">0</div>
+		<div id="timebar"></div>
+		<div id="menu">
+			<a href="javascript:;">开&nbsp;始</a>
+		</div>
+		<div id="gameOver">gameover!</div>
+		<div id="wolfbox">
+			<!-- <div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div> -->
+		</div>
+	</div>
+	<script>
+		var outer=document.getElementById('outer');
+		var score=document.getElementById('score');
+		var timeBar=document.getElementById('timebar');
+		var menu=document.getElementById('menu');
+		var gameOver=document.getElementById('gameOver');
+		var wolfBox=document.getElementById('wolfbox');
+
+		var scoreNum=0;//统计分数的初始
+
+		menu.onclick = function(){
+			// 点击开始后隐藏菜单
+			this.style.display='none';
+
+			gameTime();//时间条开始运动
+			gameStart();
+
+		}
+
+// 设置随机函数，随机生成狼的位置
+		//把狼的位置放在数组中
+		var arrPos = [{l:97+"px",t:114+"px"},{l:185+"px",t:142+"px"},{l:16+"px",t:160+"px"},{l:100+"px",t:190+"px"},{l:197+"px",t:212+"px"},{l:16+"px",t:220+"px"},{l:118+"px",t:274+"px"},{l:30+"px",t:293+"px"},{l:205+"px",t:296+"px"}]
+		//创建随机函数，随机取值arrPos的值，获取狼
+		function rand(min ,max){
+			return parseInt(Math.random()*(max - min +1 ) + min);
+		}
+
+// 判断不能连续出现
+		// 创建数组，存放近几次的位置坐标,与新的判断是否重复
+		var arrP = [];
+
+
+// 创建生成狼的div的函数
+		function createWolf(){
+			// 先创建狼的dom对象
+			var wolf = document.createElement("div");
+
+			wolf.index = 0;//用来控制狼的背景图定位
+
+			wolf.upFlag = true //判断狼应该上钻|下钻
+
+			wolf.ifClick = false; //判断是否打中
+
+			var pos = rand(0,8);
+
+			while(arrP.indexOf(pos) !=-1){
+				//如果数组中存在这个位置，重新生成
+				pos = rand(0,8);
+
+				// 限制存放位置记录的数组的长度，避免到9 之后每次添加必然重复的现象
+				if (arrP.length > 4) {
+					arrP.splice(0,1)
+				}
+			}
+			arrP.push(pos);
+
+			// 根据创建出来的随机位置，去arrPos数组中取值
+			wolf.style.left = arrPos[pos].l;
+			wolf.style.top = arrPos[pos].t;
+
+			// 设置生成灰太狼和小灰灰出现的概率
+			var who = "h" ;
+			Math.random() > 0.8 ? who = "x" : who = "h";
+			wolf.style.background = "url(img/"+who+".png)";
+
+			wolfBox.appendChild(wolf);
+
+
+			// 绑定点击事件，添加锅打功能
+			
+			wolf.onclick = function(){
+				wolf.index = 4;
+				wolf.ifClick = true;
+
+				wolf.onclick = null;//禁止连续点击
+
+				//统计分数
+				if (who == "h") {
+					scoreNum +=10;
+				}
+				else{
+					scoreNum -=10;
+				}
+				if (scoreNum <=0) {
+					scoreNum = 0;
+				}
+				score.innerHTML =scoreNum;
+			}
+
+
+			//每一只狼都有一只自己的专属计时器
+			wolf.upTime = setInterval(function(){
+				//通过控制upFlag的值控制狼钻的方向
+				if (wolf.upFlag || wolf.ifClick) {
+				wolf.index ++ ; 
+
+				}
+				else{
+				wolf.index -- ;  
+
+				}
+
+				//判断wolf.index 的值有没有达到临界
+				if (wolf.index >= 5) {
+					// 钻出后，通过改变upFlag的值，改变方向
+					wolf.upFlag =false;
+				}
+				if (wolf.index < 0 || wolf.index >9 ) {
+					// 如果狼完全退回或打中且动画到头，停止该狼的计时器，删除div
+					clearInterval(wolf.upTime);
+					wolfBox.removeChild(wolf);
+
+				}
+
+				//根据wolf.index设置狼的背景图定位
+				wolf.style.backgroundPosition = -108*wolf.index+"px 0";
+				
+
+			},100)
+
+		}
+
+		var gameStartT = null;//游戏开始的计时器
+		function gameStart(){
+
+			gameStartT = setInterval(function(){
+				createWolf();
+
+			},500)
+		}
+
+		var timeBarT = null;//时间进度条的计时器
+		function gameTime(){
+			timeBarT = setInterval(function(){
+				var w = timeBar.offsetWidth;
+				w--;
+				if (w <= 0) {
+					clearInterval(gameStartT);
+					gameOver.style.display = "block";
+					clearInterval(timeBarT);
+				}
+				timeBar.style.width = w + 'px';
+			},150)
+		}
+	</script>
+</body>
+</html>
